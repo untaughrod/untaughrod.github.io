@@ -228,7 +228,7 @@ just the propagation window.
 ## Accessibility and performance notes
 
 - Everything honours `prefers-reduced-motion`: the WebGL scene is never
-  downloaded, Lenis is skipped, the custom cursor is hidden, and scroll reveals
+  downloaded, Lenis is skipped, and scroll reveals
   resolve immediately.
 - three.js (~540 kB raw) is dynamically imported and only fetched when the hero
   canvas is near the viewport, and never on browsers without WebGL2.

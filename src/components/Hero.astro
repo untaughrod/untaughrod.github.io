@@ -34,11 +34,6 @@ import { hero, site } from '../data/site';
       <a class="btn" href="#work">See the work</a>
     </div>
   </div>
-
-  <a class="hero__scroll" href="#disciplines" aria-label="Scroll to content">
-    <span class="hero__scroll-label">Scroll</span>
-    <span class="hero__scroll-line" aria-hidden="true"></span>
-  </a>
 </section>
 
 <script>
@@ -254,45 +249,6 @@ import { hero, site } from '../data/site';
     color: var(--accent);
   }
 
-  .hero__scroll {
-    position: absolute;
-    left: var(--gutter);
-    bottom: 2rem;
-    z-index: 1;
-    display: none;
-    align-items: center;
-    gap: 0.75rem;
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    animation: fade-up 1s var(--ease) 1s both;
-  }
-
-  @media (min-height: 640px) {
-    .hero__scroll {
-      display: flex;
-    }
-  }
-
-  .hero__scroll-line {
-    width: 3.5rem;
-    height: 1px;
-    background: var(--line-strong);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .hero__scroll-line::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--accent);
-    transform: translateX(-100%);
-    animation: sweep 2.2s var(--ease-io) infinite;
-  }
-
   @keyframes line-rise {
     from {
       transform: translateY(105%) rotate(3deg);
@@ -313,29 +269,14 @@ import { hero, site } from '../data/site';
     }
   }
 
-  @keyframes sweep {
-    0% {
-      transform: translateX(-100%);
-    }
-    60%,
-    100% {
-      transform: translateX(100%);
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .hero__line-inner,
     .hero__kicker,
     .hero__standfirst,
-    .hero__actions,
-    .hero__scroll {
+    .hero__actions {
       animation: none;
       opacity: 1;
       transform: none;
-    }
-
-    .hero__scroll-line::after {
-      animation: none;
     }
   }
 </style>

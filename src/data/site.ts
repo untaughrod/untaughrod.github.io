@@ -13,7 +13,7 @@ export const site = {
   title: 'Thales Medeiros — Designer who ships software',
   description:
     'Product designer, illustrator and 3D modeller building the tools he wanted to use. TypeScript, interface design, and things that move.',
-  email: 'tha.med.silva@gmail.com',
+  email: 'untaughrod@gmail.com',
   social: {
     github: 'https://github.com/untaughrod',
     instagram: 'https://instagram.com/untaughrod',

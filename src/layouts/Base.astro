@@ -88,14 +88,9 @@ const ogImage = new URL('/og.jpg', Astro.site);
     <Footer />
 
     <div class="grain" aria-hidden="true"></div>
-    <div class="cursor" aria-hidden="true" data-cursor>
-      <div class="cursor__dot" data-cursor-dot></div>
-      <div class="cursor__ring" data-cursor-ring></div>
-    </div>
 
     <script>
       import '../scripts/motion';
-      import '../scripts/cursor';
     </script>
 
     <style>
@@ -116,65 +111,6 @@ const ogImage = new URL('/og.jpg', Astro.site);
         left: 0;
       }
 
-      /* Custom cursor — hidden entirely on touch and coarse pointers, where it
-         would be a permanently stranded dot in the corner. */
-      .cursor {
-        display: none;
-      }
-
-      @media (hover: hover) and (pointer: fine) {
-        .cursor {
-          display: block;
-          position: fixed;
-          inset: 0;
-          z-index: 9999;
-          pointer-events: none;
-        }
-
-        .cursor__dot,
-        .cursor__ring {
-          position: absolute;
-          top: 0;
-          left: 0;
-          border-radius: 50%;
-          will-change: transform;
-        }
-
-        .cursor__dot {
-          width: 6px;
-          height: 6px;
-          margin: -3px 0 0 -3px;
-          background: var(--accent);
-        }
-
-        .cursor__ring {
-          width: 36px;
-          height: 36px;
-          margin: -18px 0 0 -18px;
-          border: 1px solid var(--text-faint);
-          transition:
-            width 0.35s var(--ease),
-            height 0.35s var(--ease),
-            margin 0.35s var(--ease),
-            border-color 0.35s var(--ease),
-            background-color 0.35s var(--ease);
-        }
-
-        /* Grows into a soft target when over anything interactive. */
-        .cursor.is-hot .cursor__ring {
-          width: 64px;
-          height: 64px;
-          margin: -32px 0 0 -32px;
-          border-color: var(--accent);
-          background: color-mix(in srgb, var(--accent) 10%, transparent);
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .cursor {
-          display: none;
-        }
-      }
     </style>
   </body>
 </html>
