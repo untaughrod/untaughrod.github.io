@@ -1,0 +1,187 @@
+---
+const marquee = [
+  'TypeScript',
+  'Astro',
+  'Design systems',
+  'Blender',
+  'three.js',
+  'Figma',
+  'Obsidian API',
+  'Illustration',
+  'Motion',
+  'Hard-surface modelling',
+];
+---
+
+<!-- Duplicated once so the GSAP loop can translate -50% and wrap seamlessly. -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee__track" data-marquee-track>
+    {
+      [0, 1].map(() =>
+        marquee.map((word) => (
+          <span class="marquee__item">
+            {word}
+            <span class="marquee__sep">✦</span>
+          </span>
+        )),
+      )
+    }
+  </div>
+</div>
+
+<section class="about section" id="about">
+  <div class="shell about__grid">
+    <div class="about__sticky">
+      <p class="eyebrow" data-reveal>About</p>
+      <h2 class="about__title" data-split>Designer, then engineer</h2>
+    </div>
+
+    <div class="about__prose">
+      <p data-reveal>
+        I am <strong>Thales Medeiros</strong>. For most of the last decade my
+        job was to decide how something should look and behave, write it down,
+        and hand it to someone else to build. I got good at the deciding part.
+        The handing-off part never stopped bothering me.
+      </p>
+
+      <p data-reveal>
+        So I learned to build. I started with the software I use every day —
+        Obsidian — and shipped five plugins in as many months: a contextual
+        menu, a dictionary manager, a favourites tab, a frontmatter tag
+        injector, and a text expander. Small tools, but real ones, with real
+        users filing real issues.
+      </p>
+
+      <p data-reveal>
+        What surprised me is how little of the design work I had to leave
+        behind. Naming things well is the same skill as naming a layer well.
+        Deciding what a plugin should <em>refuse</em> to do is scoping. The
+        difference is that now I can close the loop myself.
+      </p>
+
+      <p data-reveal>
+        I still draw birds and model handhelds. That is not a hobby I keep
+        separate from the engineering — it is where the taste comes from.
+      </p>
+
+      <div class="about__now" data-reveal>
+        <p class="about__now-label">Currently</p>
+        <ul class="about__now-list">
+          <li>Deepening TypeScript and front-end architecture</li>
+          <li>Maintaining five Obsidian plugins</li>
+          <li>Open to design engineering roles and commissions</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .marquee {
+    overflow: hidden;
+    padding-block: 1.5rem;
+    border-block: 1px solid var(--line);
+    background: var(--surface-raised);
+    /* Guarantees the duplicated track is always wider than the viewport. */
+    white-space: nowrap;
+  }
+
+  .marquee__track {
+    display: inline-flex;
+    will-change: transform;
+  }
+
+  .marquee__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 2rem;
+    padding-right: 2rem;
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--text-dim);
+  }
+
+  .marquee__sep {
+    font-size: 0.5em;
+    color: var(--accent);
+  }
+
+  .about__grid {
+    display: grid;
+    gap: clamp(2.5rem, 5vw, 5rem);
+  }
+
+  @media (min-width: 900px) {
+    .about__grid {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      align-items: start;
+    }
+
+    .about__sticky {
+      position: sticky;
+      top: 8rem;
+    }
+  }
+
+  .about__title {
+    font-size: var(--step-3);
+    margin-top: 1.25rem;
+  }
+
+  .about__prose {
+    display: grid;
+    gap: 1.5rem;
+    max-width: var(--measure);
+    font-size: var(--step-1);
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+
+  .about__prose strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .about__prose em {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .about__now {
+    margin-top: 1.5rem;
+    padding: 1.75rem;
+    border: 1px solid var(--line);
+    background: var(--surface-raised);
+  }
+
+  .about__now-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .about__now-list {
+    display: grid;
+    gap: 0.65rem;
+    list-style: none;
+    padding: 0;
+    font-size: var(--step-0);
+    color: var(--text-dim);
+  }
+
+  .about__now-list li {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .about__now-list li::before {
+    content: '→';
+    color: var(--text-faint);
+    flex: none;
+  }
+</style>

@@ -1,0 +1,318 @@
+---
+import { getRepos, languageColors, formatUpdated } from '../data/github';
+import { site } from '../data/site';
+
+// Runs at build time. The daily scheduled workflow keeps it current.
+const repos = await getRepos();
+const languages = [...new Set(repos.map((r) => r.language).filter(Boolean))] as string[];
+---
+
+<section class="code section" id="code">
+  <div class="shell">
+    <header class="code__head">
+      <p class="eyebrow" data-reveal>Shipped software</p>
+
+      <h2 class="code__title" data-split>Things I built</h2>
+
+      <p class="lede" data-reveal>
+        I kept hitting the same gaps in the tools I use every day, so I learned
+        enough TypeScript to close them. These are public, installed by other
+        people, and maintained.
+      </p>
+
+      <dl class="code__stats" data-reveal>
+        <div>
+          <dt>Repositories</dt>
+          <dd>{repos.length}</dd>
+        </div>
+        <div>
+          <dt>Languages</dt>
+          <dd>{languages.join(' · ') || '—'}</dd>
+        </div>
+        <div>
+          <dt>Licence</dt>
+          <dd>0BSD</dd>
+        </div>
+      </dl>
+    </header>
+
+    <ul class="code__grid" data-spotlight-grid>
+      {
+        repos.map((repo, i) => (
+          <li class="repo" data-reveal data-reveal-delay={(i % 3) * 90}>
+            <a
+              class="repo__link"
+              href={repo.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-spotlight
+            >
+              <span class="repo__glow" aria-hidden="true" />
+
+              <span class="repo__top">
+                <span class="repo__icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 005.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.42 7.42 0 014 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z" />
+                  </svg>
+                </span>
+
+                <span class="repo__arrow" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 10 10" fill="none">
+                    <path d="M1 9L9 1M9 1H3M9 1V7" stroke="currentColor" stroke-width="1.4" />
+                  </svg>
+                </span>
+              </span>
+
+              <h3 class="repo__name">{repo.name}</h3>
+
+              <p class="repo__desc">{repo.description || 'No description yet.'}</p>
+
+              <span class="repo__meta">
+                {repo.language && (
+                  <span class="repo__lang">
+                    <span
+                      class="repo__dot"
+                      style={`background:${languageColors[repo.language] ?? '#8a8a94'}`}
+                      aria-hidden="true"
+                    />
+                    {repo.language}
+                  </span>
+                )}
+
+                {repo.stars > 0 && <span class="repo__stars">★ {repo.stars}</span>}
+
+                <span class="repo__updated">Updated {formatUpdated(repo.updated)}</span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <a class="code__all" href={site.social.github} target="_blank" rel="noopener noreferrer">
+      All repositories on GitHub
+      <svg width="12" height="12" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+        <path d="M1 9L9 1M9 1H3M9 1V7" stroke="currentColor" stroke-width="1.4"></path>
+      </svg>
+    </a>
+  </div>
+</section>
+
+<script>
+  // Cursor-tracked spotlight on each card. Pointer position is written to CSS
+  // custom properties and the gradient does the rest, so there is no per-frame
+  // JavaScript layout work.
+  const grid = document.querySelector<HTMLElement>('[data-spotlight-grid]');
+
+  if (grid && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    grid.addEventListener(
+      'pointermove',
+      (event) => {
+        const card = (event.target as Element).closest<HTMLElement>('[data-spotlight]');
+        if (!card) return;
+
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--mx', `${event.clientX - rect.left}px`);
+        card.style.setProperty('--my', `${event.clientY - rect.top}px`);
+      },
+      { passive: true },
+    );
+  }
+</script>
+
+<style>
+  .code {
+    background: linear-gradient(to bottom, var(--surface), var(--surface-raised) 40%, var(--surface));
+  }
+
+  .code__head {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 70ch;
+  }
+
+  .code__title {
+    font-size: var(--step-4);
+  }
+
+  .code__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    margin-top: 1rem;
+  }
+
+  .code__stats dt {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 0.4rem;
+  }
+
+  .code__stats dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--step-0);
+    color: var(--text);
+  }
+
+  .code__grid {
+    list-style: none;
+    padding: 0;
+    margin-top: clamp(3rem, 6vw, 5rem);
+    display: grid;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 680px) {
+    .code__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .code__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .repo {
+    background: var(--surface);
+  }
+
+  .repo__link {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    height: 100%;
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+    overflow: hidden;
+    transition: background-color 0.5s var(--ease);
+  }
+
+  .repo__link:hover {
+    background: var(--surface-raised);
+  }
+
+  .repo__glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.45s var(--ease);
+    background: radial-gradient(
+      15rem circle at var(--mx, 50%) var(--my, 50%),
+      color-mix(in srgb, var(--accent) 14%, transparent),
+      transparent 65%
+    );
+  }
+
+  .repo__link:hover .repo__glow {
+    opacity: 1;
+  }
+
+  .repo__top {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .repo__icon {
+    color: var(--text-faint);
+    transition: color 0.4s var(--ease);
+  }
+
+  .repo__link:hover .repo__icon {
+    color: var(--accent);
+  }
+
+  .repo__arrow {
+    color: var(--text-faint);
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition:
+      opacity 0.4s var(--ease),
+      transform 0.4s var(--ease),
+      color 0.4s var(--ease);
+  }
+
+  .repo__link:hover .repo__arrow {
+    opacity: 1;
+    transform: none;
+    color: var(--accent);
+  }
+
+  .repo__name {
+    position: relative;
+    font-family: var(--font-mono);
+    font-size: var(--step-1);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    /* Repo names are hyphenated and can be long. */
+    overflow-wrap: anywhere;
+  }
+
+  .repo__desc {
+    position: relative;
+    flex: 1;
+    font-size: var(--step-0);
+    line-height: 1.55;
+    color: var(--text-dim);
+  }
+
+  .repo__meta {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--text-faint);
+  }
+
+  .repo__lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .repo__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: none;
+  }
+
+  .code__all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 2.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--line-strong);
+    transition:
+      color 0.35s var(--ease),
+      border-color 0.35s var(--ease);
+  }
+
+  .code__all:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+</style>

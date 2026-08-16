@@ -1,0 +1,341 @@
+---
+import { hero, site } from '../data/site';
+---
+
+<section class="hero" id="top">
+  <!-- Sits behind the type; purely decorative, so it is hidden from AT. -->
+  <canvas class="hero__canvas" data-hero-canvas aria-hidden="true"></canvas>
+
+  <div class="hero__grid" aria-hidden="true"></div>
+
+  <div class="hero__content shell">
+    <p class="hero__kicker">
+      <span>{site.name}</span>
+      <span class="hero__kicker-sep">/</span>
+      <span>Product design → software</span>
+    </p>
+
+    <h1 class="hero__title">
+      {
+        hero.lines.map((line, i) => (
+          <span class="hero__line">
+            <span class="hero__line-inner" style={`--i:${i}`}>
+              {line}
+            </span>
+          </span>
+        ))
+      }
+    </h1>
+
+    <p class="hero__standfirst">{hero.standfirst}</p>
+
+    <div class="hero__actions">
+      <a class="btn btn--solid" href="#code">See the code</a>
+      <a class="btn" href="#work">See the work</a>
+    </div>
+  </div>
+
+  <a class="hero__scroll" href="#disciplines" aria-label="Scroll to content">
+    <span class="hero__scroll-label">Scroll</span>
+    <span class="hero__scroll-line" aria-hidden="true"></span>
+  </a>
+</section>
+
+<script>
+  // The three.js bundle is the heaviest thing on the page, so it is only
+  // fetched when the canvas is actually about to be seen — and never at all for
+  // reduced-motion users or browsers without WebGL.
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
+
+  const supportsWebGL = () => {
+    try {
+      return !!document.createElement('canvas').getContext('webgl2');
+    } catch {
+      return false;
+    }
+  };
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (canvas && !reduced && supportsWebGL()) {
+    const observer = new IntersectionObserver(
+      async ([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+
+        const { initHero } = await import('../scripts/hero3d');
+        initHero(canvas);
+        canvas.classList.add('is-live');
+      },
+      { rootMargin: '200px' },
+    );
+
+    observer.observe(canvas);
+  } else if (canvas) {
+    // No scene: let the CSS gradient backdrop carry the hero on its own.
+    canvas.remove();
+  }
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    /* Clears the fixed nav. */
+    padding-block: 7rem 5rem;
+    isolation: isolate;
+  }
+
+  /* A wash of colour behind everything, so the hero still has presence when
+     the WebGL scene is absent. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -3;
+    background:
+      radial-gradient(
+        60% 50% at 72% 32%,
+        color-mix(in srgb, var(--accent-fill) var(--glow-warm-strength), transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        50% 60% at 20% 78%,
+        color-mix(in srgb, var(--glow-cool) var(--glow-cool-strength), transparent),
+        transparent 70%
+      ),
+      var(--surface);
+  }
+
+  .hero__grid {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background-image:
+      linear-gradient(to right, var(--line-faint) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--line-faint) 1px, transparent 1px);
+    background-size: clamp(48px, 7vw, 92px) clamp(48px, 7vw, 92px);
+    /* Fades out toward the edges so it reads as texture, not a table. */
+    mask-image: radial-gradient(75% 65% at 50% 45%, #000 35%, transparent 100%);
+    opacity: 0.55;
+  }
+
+  .hero__canvas {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1.4s var(--ease);
+    /* The type is the priority; the device shouldn't eat pointer events. */
+    pointer-events: none;
+  }
+
+  .hero__canvas.is-live {
+    opacity: 1;
+  }
+
+  @media (min-width: 1000px) {
+    /* On wide screens push the device into the right half and keep the type
+       clear of it. */
+    .hero__canvas {
+      left: 28%;
+    }
+
+    .hero__content {
+      max-width: 68%;
+    }
+  }
+
+  .hero__content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+
+  .hero__kicker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: clamp(1.25rem, 3vw, 2.25rem);
+    animation: fade-up 1s var(--ease) 0.1s both;
+  }
+
+  .hero__kicker-sep {
+    color: var(--accent);
+  }
+
+  .hero__title {
+    font-size: var(--step-5);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .hero__line {
+    display: block;
+    overflow: hidden;
+  }
+
+  .hero__line-inner {
+    display: block;
+    /* Each line clears its own mask, staggered by index. */
+    animation: line-rise 1.15s var(--ease) calc(0.2s + var(--i) * 0.11s) both;
+  }
+
+  /* The last line gets the accent — the payoff word. */
+  .hero__line:last-child .hero__line-inner {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .hero__standfirst {
+    max-width: 52ch;
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--text-dim);
+    letter-spacing: -0.01em;
+    animation: fade-up 1s var(--ease) 0.62s both;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-top: clamp(2rem, 4vw, 3rem);
+    animation: fade-up 1s var(--ease) 0.76s both;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.85rem 1.6rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 100px;
+    transition:
+      background-color 0.4s var(--ease),
+      border-color 0.4s var(--ease),
+      color 0.4s var(--ease),
+      transform 0.4s var(--ease);
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn--solid {
+    /* A true peach block, so it keeps the brand colour in both modes and pairs
+       with the dark on-accent type rather than the readable accent variant. */
+    background: var(--accent-fill);
+    border-color: var(--accent-fill);
+    color: var(--on-accent);
+  }
+
+  .btn--solid:hover {
+    background: transparent;
+    color: var(--accent);
+  }
+
+  .hero__scroll {
+    position: absolute;
+    left: var(--gutter);
+    bottom: 2rem;
+    z-index: 1;
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    animation: fade-up 1s var(--ease) 1s both;
+  }
+
+  @media (min-height: 640px) {
+    .hero__scroll {
+      display: flex;
+    }
+  }
+
+  .hero__scroll-line {
+    width: 3.5rem;
+    height: 1px;
+    background: var(--line-strong);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero__scroll-line::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform: translateX(-100%);
+    animation: sweep 2.2s var(--ease-io) infinite;
+  }
+
+  @keyframes line-rise {
+    from {
+      transform: translateY(105%) rotate(3deg);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(1.25rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes sweep {
+    0% {
+      transform: translateX(-100%);
+    }
+    60%,
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__line-inner,
+    .hero__kicker,
+    .hero__standfirst,
+    .hero__actions,
+    .hero__scroll {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    .hero__scroll-line::after {
+      animation: none;
+    }
+  }
+</style>

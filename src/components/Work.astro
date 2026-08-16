@@ -1,0 +1,262 @@
+---
+import { work, disciplineLabels } from '../data/site';
+---
+
+<section class="work" id="work">
+  <div class="work__intro shell">
+    <p class="eyebrow" data-reveal>Ten years before the code</p>
+    <h2 class="work__title" data-split>The craft</h2>
+    <p class="lede" data-reveal>
+      Illustration taught me silhouette and weight. 3D taught me tolerance and
+      how a part is actually made. Product design taught me to defend a
+      decision. All of it shows up in the software.
+    </p>
+  </div>
+
+  <!-- Pinned on wide screens and scrubbed sideways; a plain scrolling row on
+       narrow ones, where pinning fights the browser's own gestures. -->
+  <div class="work__rail" data-rail>
+    <div class="work__track" data-rail-track>
+      {
+        work.map((item, i) => (
+          <article class="piece">
+            <div class="piece__frame">
+              {item.image ? (
+                <img
+                  class="piece__image"
+                  src={item.image}
+                  alt={item.title}
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                /* Typographic placeholder so the layout is complete before the
+                   real assets are migrated across. */
+                <div class="piece__placeholder" aria-hidden="true">
+                  <span class="piece__placeholder-num">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span class="piece__placeholder-note">Image to come</span>
+                </div>
+              )}
+            </div>
+
+            <div class="piece__body">
+              <p class="piece__meta">
+                <span>{disciplineLabels[item.discipline]}</span>
+                <span class="piece__dot" aria-hidden="true">
+                  ·
+                </span>
+                <span>{item.year}</span>
+              </p>
+
+              <h3 class="piece__title">{item.title}</h3>
+              <p class="piece__summary">{item.summary}</p>
+
+              <ul class="piece__tags">
+                {item.tags.map((tag) => (
+                  <li>{tag}</li>
+                ))}
+              </ul>
+            </div>
+          </article>
+        ))
+      }
+
+      <article class="piece piece--end">
+        <p class="piece__end-label">More on the way</p>
+        <p class="piece__end-note">
+          The full archive is still being migrated across from the old site.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<style>
+  .work {
+    position: relative;
+    padding-top: clamp(5rem, 3rem + 10vw, 12rem);
+    background: var(--surface-sunken);
+  }
+
+  .work__intro {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 70ch;
+    margin-bottom: clamp(3rem, 6vw, 5rem);
+  }
+
+  .work__title {
+    font-size: var(--step-4);
+  }
+
+  .work__rail {
+    padding-bottom: clamp(4rem, 8vw, 8rem);
+  }
+
+  .work__track {
+    display: flex;
+    gap: clamp(1.25rem, 2.5vw, 2.5rem);
+    padding-inline: var(--gutter);
+    /* Below the pin breakpoint this is a normal swipeable row. */
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .work__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (min-width: 900px) {
+    .work__rail {
+      /* Pinned for the duration of the horizontal scrub. */
+      min-height: 100svh;
+      display: flex;
+      align-items: center;
+      padding-bottom: 0;
+    }
+
+    .work__track {
+      overflow: visible;
+      scroll-snap-type: none;
+      will-change: transform;
+    }
+  }
+
+  .piece {
+    flex: none;
+    width: min(78vw, 30rem);
+    scroll-snap-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .piece__frame {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+  }
+
+  .piece__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(1) contrast(1.05);
+    transform: scale(1.02);
+    transition:
+      filter 0.7s var(--ease),
+      transform 0.9s var(--ease);
+  }
+
+  .piece:hover .piece__image {
+    filter: none;
+    transform: scale(1.06);
+  }
+
+  .piece__placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background-image:
+      repeating-linear-gradient(
+        45deg,
+        var(--line-faint) 0 2px,
+        transparent 2px 14px
+      );
+  }
+
+  .piece__placeholder-num {
+    font-family: var(--font-display);
+    font-size: var(--step-5);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--line);
+  }
+
+  .piece__placeholder-note {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .piece__body {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .piece__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .piece__dot {
+    color: var(--text-faint);
+  }
+
+  .piece__title {
+    font-size: var(--step-2);
+  }
+
+  .piece__summary {
+    font-size: var(--step-0);
+    line-height: 1.55;
+    color: var(--text-dim);
+  }
+
+  .piece__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    list-style: none;
+    padding: 0;
+    margin-top: 0.25rem;
+  }
+
+  .piece__tags li {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 100px;
+  }
+
+  .piece--end {
+    width: min(60vw, 22rem);
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .piece__end-label {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text-dim);
+  }
+
+  .piece__end-note {
+    font-size: var(--step-0);
+    color: var(--text-faint);
+    max-width: 28ch;
+  }
+</style>

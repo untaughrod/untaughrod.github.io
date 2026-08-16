@@ -1,0 +1,193 @@
+---
+// The button shows the theme it will switch TO, not the one you are in — a sun
+// while dark, a moon while light. The aria-label says the same thing in words.
+---
+
+<button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme">
+  <svg
+    class="theme-toggle__icon theme-toggle__sun"
+    width="17"
+    height="17"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="4"></circle>
+    <path
+      d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+    ></path>
+  </svg>
+
+  <svg
+    class="theme-toggle__icon theme-toggle__moon"
+    width="17"
+    height="17"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"></path>
+  </svg>
+</button>
+
+<script>
+  const root = document.documentElement;
+  const button = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  const systemLight = window.matchMedia('(prefers-color-scheme: light)');
+
+  const readStored = (): string | null => {
+    try {
+      return localStorage.getItem('theme');
+    } catch {
+      return null;
+    }
+  };
+
+  /** Absent `data-theme` means we are still following the OS. */
+  const currentTheme = () =>
+    root.dataset.theme ?? (systemLight.matches ? 'light' : 'dark');
+
+  if (button) {
+    const sync = (theme: string) => {
+      button.setAttribute(
+        'aria-label',
+        theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme',
+      );
+
+      // Read the painted colour rather than the token: a custom property
+      // holding light-dark() computes to the literal function text, not to the
+      // resolved colour, so getPropertyValue('--surface') would be useless here.
+      if (meta) meta.content = getComputedStyle(document.body).backgroundColor;
+
+      // hero3d listens for this. An event keeps the 3D scene decoupled from the
+      // toggle — neither imports the other.
+      document.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
+    };
+
+    const apply = (theme: string) => {
+      root.dataset.theme = theme;
+      try {
+        localStorage.setItem('theme', theme);
+      } catch {
+        /* Storage blocked — the choice just won't survive a reload. */
+      }
+      sync(theme);
+    };
+
+    button.addEventListener('click', () => {
+      const next = currentTheme() === 'dark' ? 'light' : 'dark';
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (reduced || !document.startViewTransition) {
+        apply(next);
+        return;
+      }
+
+      // Wipe outward from the button itself, so the new theme visibly comes
+      // from the control that caused it.
+      const rect = button.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      // Reach the furthest corner, or the circle stops short of covering.
+      const radius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y),
+      );
+
+      const transition = document.startViewTransition(() => apply(next));
+
+      transition.ready.then(() => {
+        root.animate(
+          {
+            clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`],
+          },
+          {
+            duration: 620,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            pseudoElement: '::view-transition-new(root)',
+          },
+        );
+      });
+    });
+
+    // Keep tracking the OS, but only until an explicit choice exists.
+    systemLight.addEventListener('change', () => {
+      if (!readStored()) sync(currentTheme());
+    });
+
+    sync(currentTheme());
+  }
+</script>
+
+<style>
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex: none;
+    padding: 0;
+    background: none;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition:
+      color 0.35s var(--ease),
+      border-color 0.35s var(--ease),
+      background-color 0.35s var(--ease);
+  }
+
+  .theme-toggle:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .theme-toggle__icon {
+    transition: transform 0.5s var(--ease);
+  }
+
+  .theme-toggle:hover .theme-toggle__icon {
+    transform: rotate(35deg);
+  }
+
+  /* Default is dark, so the sun shows and the moon is hidden. The pair of rules
+     below mirror the stylesheet's theme resolution: the media query covers
+     following the OS, the attribute covers an explicit choice. */
+  .theme-toggle__moon {
+    display: none;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme='dark']) .theme-toggle__sun {
+      display: none;
+    }
+
+    :root:not([data-theme='dark']) .theme-toggle__moon {
+      display: block;
+    }
+  }
+
+  :root[data-theme='light'] .theme-toggle__sun {
+    display: none;
+  }
+
+  :root[data-theme='light'] .theme-toggle__moon {
+    display: block;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-toggle:hover .theme-toggle__icon {
+      transform: none;
+    }
+  }
+</style>

@@ -1,0 +1,10 @@
+{
+  "name": "Thales Medeiros — Designer who ships software",
+  "short_name": "untaughrod",
+  "icons": [
+    { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512" }
+  ],
+  "theme_color": "#08080a",
+  "background_color": "#08080a"
+}

@@ -1,0 +1,180 @@
+---
+import '../styles/global.css';
+import { site } from '../data/site';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+type Props = {
+  title?: string;
+  description?: string;
+};
+
+const { title = site.title, description = site.description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+// Scrapers reject relative image paths, so this has to be absolute.
+const ogImage = new URL('/og.jpg', Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/icon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/icon-16.png" type="image/png" sizes="16x16" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="canonical" href={canonical} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={site.name} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${site.name} — product design to software`} />
+    <meta property="og:site_name" content={site.domain} />
+    {/* Twitter falls back to og:image, so no separate twitter:image is needed. */}
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Kept in sync with --surface by the theme script below. -->
+    <meta name="theme-color" content="#08080a" />
+
+    <!--
+      Runs before first paint. Both of these MUST be inline and blocking:
+      deferring the theme by even one frame shows a flash of the wrong one, and
+      deferring the `js` class flashes unrevealed content.
+    -->
+    <script is:inline>
+      (function () {
+        var root = document.documentElement;
+        root.classList.add('js');
+
+        var stored = null;
+        try {
+          stored = localStorage.getItem('theme');
+        } catch (e) {
+          /* Private mode or blocked storage: fall through to the OS setting. */
+        }
+
+        if (stored === 'light' || stored === 'dark') {
+          // An explicit choice pins color-scheme, which is what every
+          // light-dark() in the stylesheet resolves against.
+          root.dataset.theme = stored;
+        }
+        // With nothing stored the attribute stays absent, leaving
+        // `color-scheme: light dark` to follow the OS on its own — so the
+        // no-JS path and the first-visit path are the same code path.
+      })();
+    </script>
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <Nav />
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <div class="grain" aria-hidden="true"></div>
+    <div class="cursor" aria-hidden="true" data-cursor>
+      <div class="cursor__dot" data-cursor-dot></div>
+      <div class="cursor__ring" data-cursor-ring></div>
+    </div>
+
+    <script>
+      import '../scripts/motion';
+      import '../scripts/cursor';
+    </script>
+
+    <style>
+      .skip {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        z-index: 10000;
+        background: var(--accent-fill);
+        color: var(--on-accent);
+        padding: 0.75rem 1.25rem;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .skip:focus {
+        left: 0;
+      }
+
+      /* Custom cursor — hidden entirely on touch and coarse pointers, where it
+         would be a permanently stranded dot in the corner. */
+      .cursor {
+        display: none;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .cursor {
+          display: block;
+          position: fixed;
+          inset: 0;
+          z-index: 9999;
+          pointer-events: none;
+        }
+
+        .cursor__dot,
+        .cursor__ring {
+          position: absolute;
+          top: 0;
+          left: 0;
+          border-radius: 50%;
+          will-change: transform;
+        }
+
+        .cursor__dot {
+          width: 6px;
+          height: 6px;
+          margin: -3px 0 0 -3px;
+          background: var(--accent);
+        }
+
+        .cursor__ring {
+          width: 36px;
+          height: 36px;
+          margin: -18px 0 0 -18px;
+          border: 1px solid var(--text-faint);
+          transition:
+            width 0.35s var(--ease),
+            height 0.35s var(--ease),
+            margin 0.35s var(--ease),
+            border-color 0.35s var(--ease),
+            background-color 0.35s var(--ease);
+        }
+
+        /* Grows into a soft target when over anything interactive. */
+        .cursor.is-hot .cursor__ring {
+          width: 64px;
+          height: 64px;
+          margin: -32px 0 0 -32px;
+          border-color: var(--accent);
+          background: color-mix(in srgb, var(--accent) 10%, transparent);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .cursor {
+          display: none;
+        }
+      }
+    </style>
+  </body>
+</html>

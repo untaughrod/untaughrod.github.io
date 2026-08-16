@@ -1,0 +1,125 @@
+---
+import { site } from '../data/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="footer" id="contact">
+  <div class="shell">
+    <div class="footer__top">
+      <p class="eyebrow">Say hello</p>
+
+      <a class="footer__mail" href={`mailto:${site.email}`} data-hot>
+        <span class="footer__mail-text">{site.email}</span>
+      </a>
+
+      <p class="footer__note">
+        Open to product design and front-end engineering work, and to
+        commissions in illustration and 3D.
+      </p>
+    </div>
+
+    <hr class="rule" />
+
+    <div class="footer__bottom">
+      <p class="footer__meta">
+        © {year} {site.name}. Built with Astro, GSAP and three.js — source on
+        <a href={`${site.social.github}`} target="_blank" rel="noopener noreferrer">GitHub</a>.
+      </p>
+
+      <ul class="footer__social">
+        <li><a href={site.social.github} target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        <li>
+          <a href={site.social.instagram} target="_blank" rel="noopener noreferrer">Instagram</a>
+        </li>
+        <li><a href={`mailto:${site.email}`}>Email</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding-block: clamp(5rem, 3rem + 8vw, 10rem) 3rem;
+    border-top: 1px solid var(--line);
+    background: linear-gradient(to bottom, var(--surface), var(--surface-sunken));
+  }
+
+  .footer__top {
+    display: grid;
+    gap: 1.75rem;
+    margin-bottom: clamp(3rem, 6vw, 6rem);
+  }
+
+  .footer__mail {
+    font-family: var(--font-display);
+    font-size: var(--step-4);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    /* Wraps rather than overflowing on narrow screens. */
+    overflow-wrap: anywhere;
+    background-image: linear-gradient(var(--accent), var(--accent));
+    background-repeat: no-repeat;
+    background-size: 0% 2px;
+    background-position: 0 100%;
+    transition:
+      background-size 0.6s var(--ease),
+      color 0.4s var(--ease);
+  }
+
+  .footer__mail:hover {
+    color: var(--accent);
+    background-size: 100% 2px;
+  }
+
+  .footer__note {
+    max-width: 46ch;
+    color: var(--text-dim);
+  }
+
+  .footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding-top: 2rem;
+  }
+
+  .footer__meta {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    color: var(--text-faint);
+  }
+
+  .footer__meta a {
+    color: var(--text-dim);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .footer__meta a:hover {
+    color: var(--accent);
+  }
+
+  .footer__social {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+    padding: 0;
+  }
+
+  .footer__social a {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    transition: color 0.3s var(--ease);
+  }
+
+  .footer__social a:hover {
+    color: var(--accent);
+  }
+</style>

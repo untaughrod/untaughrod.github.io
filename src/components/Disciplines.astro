@@ -1,0 +1,133 @@
+---
+import { disciplines } from '../data/site';
+---
+
+<section class="disciplines section" id="disciplines">
+  <div class="shell">
+    <p class="eyebrow" data-reveal>Four practices, one job</p>
+
+    <ul class="disciplines__list">
+      {
+        disciplines.map((discipline, i) => (
+          <li class="discipline" data-discipline data-reveal data-reveal-delay={i * 80}>
+            <span class="discipline__index">{String(i + 1).padStart(2, '0')}</span>
+
+            <div class="discipline__body">
+              <h3 class="discipline__label">{discipline.label}</h3>
+              <p class="discipline__blurb">{discipline.blurb}</p>
+            </div>
+
+            <span class="discipline__year">{discipline.year}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .disciplines__list {
+    list-style: none;
+    padding: 0;
+    margin-top: clamp(2.5rem, 5vw, 4.5rem);
+    border-top: 1px solid var(--line);
+  }
+
+  .discipline {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'index body'
+      '.     year';
+    gap: 0.5rem 1.25rem;
+    align-items: start;
+    padding-block: clamp(1.75rem, 3vw, 2.75rem);
+    border-bottom: 1px solid var(--line);
+    transition: opacity 0.6s var(--ease);
+  }
+
+  @media (min-width: 800px) {
+    .discipline {
+      grid-template-columns: 5rem minmax(0, 1fr) auto;
+      grid-template-areas: 'index body year';
+      gap: 2rem;
+      align-items: center;
+    }
+  }
+
+  /* An accent wipe fills each row as it crosses the middle of the viewport. */
+  .discipline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 100%;
+    height: 1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.8s var(--ease);
+  }
+
+  .discipline.is-active::before {
+    transform: scaleX(1);
+  }
+
+  .discipline__index {
+    grid-area: index;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    color: var(--text-faint);
+    padding-top: 0.35rem;
+    transition: color 0.5s var(--ease);
+  }
+
+  .discipline.is-active .discipline__index {
+    color: var(--accent);
+  }
+
+  .discipline__body {
+    grid-area: body;
+  }
+
+  .discipline__label {
+    font-size: var(--step-3);
+    letter-spacing: -0.04em;
+    color: var(--text-dim);
+    transition:
+      color 0.5s var(--ease),
+      transform 0.6s var(--ease);
+  }
+
+  .discipline.is-active .discipline__label {
+    color: var(--text);
+  }
+
+  @media (min-width: 800px) {
+    .discipline.is-active .discipline__label {
+      transform: translateX(0.5rem);
+    }
+  }
+
+  .discipline__blurb {
+    max-width: 54ch;
+    margin-top: 0.6rem;
+    font-size: var(--step-0);
+    color: var(--text-faint);
+    transition: color 0.5s var(--ease);
+  }
+
+  .discipline.is-active .discipline__blurb {
+    color: var(--text-dim);
+  }
+
+  .discipline__year {
+    grid-area: year;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+</style>
