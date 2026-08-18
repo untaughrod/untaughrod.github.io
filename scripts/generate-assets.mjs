@@ -18,6 +18,7 @@ import path from 'node:path';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ASSETS = path.join(root, 'src', 'assets');
 const PUBLIC = path.join(root, 'public');
+const DOCS = path.join(root, 'docs');
 
 const BADGE = path.join(ASSETS, 'logo-badge.png'); // original, white rim intact
 const DISC = path.join(ASSETS, 'logo-disc.png'); // generated, rim cropped away
@@ -274,6 +275,21 @@ async function buildOgCard() {
     .toFile(path.join(PUBLIC, 'og.jpg'));
 }
 
+/**
+ * Small transparent mark for the README header.
+ *
+ * GitHub serves README images unoptimised, so pointing at the 559 KB source
+ * would make the front page of the repo needlessly heavy. Transparency matters
+ * too: it has to sit on both GitHub's light and dark themes.
+ */
+async function buildReadmeLogo() {
+  await mkdir(DOCS, { recursive: true });
+  await sharp(DISC)
+    .resize(320, 320)
+    .png({ compressionLevel: 9, palette: true, quality: 90, effort: 10 })
+    .toFile(path.join(DOCS, 'logo-readme.png'));
+}
+
 async function main() {
   await mkdir(PUBLIC, { recursive: true });
 
@@ -298,6 +314,9 @@ async function main() {
 
   await buildOgCard();
   console.log('  og.jpg    1200×630');
+
+  await buildReadmeLogo();
+  console.log('  docs/logo-readme.png  320×320');
 
   console.log('\nDone. Commit the results — these are not generated at build time.');
 }
