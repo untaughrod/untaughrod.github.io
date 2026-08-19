@@ -87,20 +87,41 @@ function initScrollScenes() {
     // Keep the original text available to assistive tech; the spans are noise.
     heading.setAttribute('aria-label', text);
 
-    const chars = [...text].map((char) => {
-      const outer = document.createElement('span');
-      outer.style.display = 'inline-block';
-      outer.style.overflow = 'hidden';
-      outer.style.verticalAlign = 'top';
-      outer.setAttribute('aria-hidden', 'true');
+    const chars: HTMLElement[] = [];
 
-      const inner = document.createElement('span');
-      inner.style.display = 'inline-block';
-      inner.textContent = char === ' ' ? ' ' : char;
+    // Characters are grouped into words rather than emitted straight into the
+    // heading. Each character has to be an inline-block to be masked and
+    // translated, and every inline-block is its own break opportunity — so a
+    // flat run of them lets the browser wrap mid-word ("Designer, th / en
+    // engineer"). Worse, the spaces used to be non-breaking, which removed the
+    // only legitimate break points and guaranteed the break landed inside a
+    // word. A nowrap wrapper per word, separated by ordinary spaces, leaves the
+    // spaces as the only place a line can break.
+    text.split(' ').forEach((word, wordIndex) => {
+      if (wordIndex > 0) heading.appendChild(document.createTextNode(' '));
+      if (word === '') return;
 
-      outer.appendChild(inner);
-      heading.appendChild(outer);
-      return inner;
+      const wrapper = document.createElement('span');
+      wrapper.style.display = 'inline-block';
+      wrapper.style.whiteSpace = 'nowrap';
+      wrapper.setAttribute('aria-hidden', 'true');
+
+      for (const char of word) {
+        const outer = document.createElement('span');
+        outer.style.display = 'inline-block';
+        outer.style.overflow = 'hidden';
+        outer.style.verticalAlign = 'top';
+
+        const inner = document.createElement('span');
+        inner.style.display = 'inline-block';
+        inner.textContent = char;
+
+        outer.appendChild(inner);
+        wrapper.appendChild(outer);
+        chars.push(inner);
+      }
+
+      heading.appendChild(wrapper);
     });
 
     gsap.from(chars, {

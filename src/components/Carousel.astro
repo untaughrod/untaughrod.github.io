@@ -198,7 +198,10 @@ const { label, speed = 40 } = Astro.props;
 
   .carousel__track {
     display: flex;
-    align-items: flex-end;
+    /* Top-aligned, not bottom: the frames are a fixed height, so aligning tops
+       puts every image on one clean line. Bottom alignment let a two-line title
+       push its own artwork 22px out of the row. */
+    align-items: flex-start;
     gap: clamp(1rem, 2vw, 2rem);
     padding-inline: var(--gutter);
     width: max-content;
