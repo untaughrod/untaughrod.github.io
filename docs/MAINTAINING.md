@@ -152,30 +152,41 @@ a version designed in your own tools — 1200×630. The generated one uses a
 system sans, because Fontsource ships woff2 only and SVG text rendering cannot
 load those, so it is *not* set in Bricolage Grotesque like the rest of the site.
 
-### Adding real work images
+### Adding work images
 
-> **Changing.** The wiring below reflects what is in the code today. It is being
-> replaced as part of the carousel rework: images move to `src/assets/work/` and
-> are matched to their entry by filename, so `astro:assets` can generate
-> responsive WebP instead of serving the original untouched.
+Drop the file into `src/assets/illustrations/` or `src/assets/retro-stuff/`,
+then:
 
-Today, files go in `public/work/` and are referenced by path in the `work` array:
-
-```ts
-{
-  slug: "world-birds",
-  title: "World Birds",
-  image: "/work/world-birds.jpg",
-  // ...
-}
+```bash
+npm run images
 ```
 
-Anything under `public/` is served byte-for-byte with no resizing, format
-conversion or `srcset` — which is exactly why this is moving.
+That regenerates `src/data/work-images.ts`. The folder decides the discipline;
+the title is derived from the filename. To correct a title or add a year, add a
+line to `overrides` in `src/data/work.ts` — nothing else needs touching.
 
-Items without an `image` render a typographic placeholder card, so the layout
-stays intact while assets are migrated across from the old Google Sites
-portfolio.
+**Why a generated file and not `import.meta.glob`.** Astro only skips emitting
+an original image when it can statically prove `<Image>` is its sole consumer.
+That proof needs the import binding to flow straight into `<Image>`; routing it
+through a data module and an array defeats it, eager or lazy. Measured here, the
+glob shipped **17 MB of unreferenced originals** against the 1.3 MB of WebP
+actually served.
+
+The generated file restores static imports, but the array indirection still
+trips the analysis, so `npm run build` also runs
+`scripts/prune-unreferenced-assets.mjs`. That deletes files in `dist/_astro`
+whose names appear nowhere in any emitted HTML, CSS, JS or JSON — referenced
+even once and a file is kept.
+
+**Sizing.** Cards share a height and derive their width from each image's own
+aspect ratio, so nothing is cropped. Height is capped at 430px because the
+illustrations are 1080px-tall Instagram exports; a taller card would be visibly
+soft on a high-density screen. Higher-resolution re-exports would let that cap
+rise.
+
+**TIFF does not work.** Astro lists `tiff` among its valid input formats, but
+the bundler has no loader for the extension and reads the binary as UTF-8 text.
+Convert to JPEG or PNG first.
 
 ## GitHub projects section
 

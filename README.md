@@ -47,6 +47,9 @@ _Screenshots coming soon._
   and no third-party request.
 - **Two themes, measured rather than eyeballed.** Every text-and-surface pair in
   both light and dark was contrast-tested; all clear WCAG AA and most clear AAA.
+- **A work strip that runs itself.** An infinite carousel, duplicated at runtime
+  to whatever the viewport needs, that pauses on hover, on focus, and on demand
+  — and stops entirely for anyone who prefers reduced motion.
 - **One drawing becomes every asset.** A single logo file derives the favicons,
   the Apple touch icon, the maskable Android icons, a hand-assembled `.ico`, and
   the 1200×630 social card.

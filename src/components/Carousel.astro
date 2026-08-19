@@ -1,0 +1,270 @@
+---
+/**
+ * An endlessly scrolling strip. Items are passed through the default slot and
+ * rendered once; the duplication needed for a seamless loop happens at runtime,
+ * because the number of copies depends on the measured track width versus the
+ * viewport and cannot be known when the markup is authored.
+ */
+type Props = {
+  /** Names the region for screen readers. */
+  label: string;
+  /** Scroll speed in pixels per second. */
+  speed?: number;
+};
+
+const { label, speed = 40 } = Astro.props;
+---
+
+<section class="carousel" aria-label={label} data-carousel data-speed={speed}>
+  <div class="carousel__viewport">
+    <div class="carousel__track" data-carousel-track>
+      <slot />
+    </div>
+  </div>
+
+  <button class="carousel__toggle" type="button" data-carousel-toggle aria-pressed="false">
+    <svg
+      class="carousel__icon carousel__icon--pause"
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      aria-hidden="true"
+    >
+      <rect x="1.5" y="1" width="3" height="10" rx="1" fill="currentColor"></rect>
+      <rect x="7.5" y="1" width="3" height="10" rx="1" fill="currentColor"></rect>
+    </svg>
+    <svg
+      class="carousel__icon carousel__icon--play"
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      aria-hidden="true"
+    >
+      <path d="M2.5 1.2v9.6l8-4.8z" fill="currentColor"></path>
+    </svg>
+    <span data-carousel-toggle-label>Pause</span>
+  </button>
+</section>
+
+<script>
+  import { gsap } from 'gsap';
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((root) => {
+    const track = root.querySelector<HTMLElement>('[data-carousel-track]');
+    const toggle = root.querySelector<HTMLButtonElement>('[data-carousel-toggle]');
+    const toggleLabel = root.querySelector<HTMLElement>('[data-carousel-toggle-label]');
+    if (!track) return;
+
+    const speed = Number(root.dataset.speed ?? 40);
+
+    // Snapshot the authored items before any cloning, so a rebuild always
+    // starts from the original set rather than compounding earlier clones.
+    const originals = Array.from(track.children) as HTMLElement[];
+
+    let tween: gsap.core.Tween | null = null;
+    let pausedByUser = false;
+
+    const teardown = () => {
+      tween?.kill();
+      tween = null;
+      track.querySelectorAll('[data-carousel-clone]').forEach((n) => n.remove());
+      gsap.set(track, { clearProps: 'x' });
+    };
+
+    const build = () => {
+      teardown();
+
+      if (reduced.matches || originals.length === 0) {
+        root.classList.add('is-static');
+        return;
+      }
+      root.classList.remove('is-static');
+
+      // The loop translates by exactly one set-width. That distance has to
+      // include the gap following the last item, or the wrap shows a seam one
+      // gap narrower than every other join.
+      const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+      const setWidth = track.scrollWidth + gap;
+      if (setWidth <= gap) return;
+
+      // Enough copies that content still fills the viewport at the moment the
+      // loop snaps back. Two is not always enough — a short strip on a wide
+      // screen leaves a visible gap.
+      const copies = Math.max(2, Math.ceil(window.innerWidth / setWidth) + 1);
+
+      for (let i = 1; i < copies; i++) {
+        for (const node of originals) {
+          const clone = node.cloneNode(true) as HTMLElement;
+          clone.setAttribute('data-carousel-clone', '');
+          clone.setAttribute('aria-hidden', 'true');
+          // Removes the whole subtree from the tab order in one attribute,
+          // rather than hunting every focusable descendant inside a card.
+          clone.setAttribute('inert', '');
+
+          // Originals are lazy so the strip costs nothing above the fold. A
+          // clone, though, is revealed by the transform rather than by
+          // scrolling, and lazy loading keys off intersection — so a clone
+          // could slide in blank. By now the source is cached, making eager
+          // effectively free.
+          clone
+            .querySelectorAll('img[loading="lazy"]')
+            .forEach((img) => img.setAttribute('loading', 'eager'));
+
+          track.appendChild(clone);
+        }
+      }
+
+      tween = gsap.to(track, {
+        x: -setWidth,
+        duration: setWidth / speed,
+        ease: 'none',
+        repeat: -1,
+      });
+
+      if (pausedByUser) tween.pause();
+    };
+
+    // --- Pause behaviour ---------------------------------------------------
+    // WCAG 2.2.2: motion running past five seconds needs a way to stop it.
+    // Hover and focus cover the practical problem too — a drifting image is
+    // hard to actually look at.
+    const hold = () => {
+      if (!pausedByUser) tween?.pause();
+    };
+
+    const release = () => {
+      if (!pausedByUser) tween?.play();
+    };
+
+    root.addEventListener('pointerenter', hold);
+    root.addEventListener('pointerleave', release);
+    root.addEventListener('focusin', hold);
+    root.addEventListener('focusout', (event) => {
+      if (!root.contains(event.relatedTarget as Node | null)) release();
+    });
+
+    toggle?.addEventListener('click', () => {
+      pausedByUser = !pausedByUser;
+      if (pausedByUser) tween?.pause();
+      else tween?.play();
+
+      root.classList.toggle('is-paused', pausedByUser);
+      toggle.setAttribute('aria-pressed', String(pausedByUser));
+      if (toggleLabel) toggleLabel.textContent = pausedByUser ? 'Play' : 'Pause';
+    });
+
+    // --- Lifecycle ---------------------------------------------------------
+    build();
+
+    // Card widths derive from a clamped height, so a resize changes the set
+    // width and the copy count with it.
+    let frame = 0;
+    let lastWidth = window.innerWidth;
+
+    window.addEventListener(
+      'resize',
+      () => {
+        if (window.innerWidth === lastWidth) return;
+        lastWidth = window.innerWidth;
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(build);
+      },
+      { passive: true },
+    );
+
+    reduced.addEventListener('change', build);
+
+    // Late-decoding images change the measured set width, which would leave the
+    // loop translating by a stale distance.
+    const pending = originals
+      .flatMap((n) => Array.from(n.querySelectorAll('img')))
+      .filter((img) => !img.complete)
+      .map((img) => img.decode().catch(() => undefined));
+
+    if (pending.length > 0) Promise.all(pending).then(() => build());
+  });
+</script>
+
+<style>
+  .carousel {
+    position: relative;
+  }
+
+  .carousel__viewport {
+    overflow: hidden;
+  }
+
+  .carousel__track {
+    display: flex;
+    align-items: flex-end;
+    gap: clamp(1rem, 2vw, 2rem);
+    padding-inline: var(--gutter);
+    width: max-content;
+    will-change: transform;
+  }
+
+  /* Reduced motion, or no JS: a plain swipeable row instead of a loop. */
+  .carousel.is-static .carousel__viewport,
+  html:not(.js) .carousel__viewport {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .carousel.is-static .carousel__viewport::-webkit-scrollbar,
+  html:not(.js) .carousel__viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .carousel.is-static .carousel__track > *,
+  html:not(.js) .carousel__track > * {
+    scroll-snap-align: center;
+  }
+
+  .carousel__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1.5rem 0 0 var(--gutter);
+    padding: 0.5rem 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    background: none;
+    border: 1px solid var(--line-strong);
+    border-radius: 100px;
+    cursor: pointer;
+    transition:
+      color 0.35s var(--ease),
+      border-color 0.35s var(--ease);
+  }
+
+  .carousel__toggle:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* The button depicts the action it performs: pause while running, play while
+     stopped — matching its text label. */
+  .carousel__icon--play {
+    display: none;
+  }
+
+  .carousel.is-paused .carousel__icon--pause {
+    display: none;
+  }
+
+  .carousel.is-paused .carousel__icon--play {
+    display: inline;
+  }
+
+  /* Nothing to pause when nothing moves. */
+  .carousel.is-static .carousel__toggle {
+    display: none;
+  }
+</style>

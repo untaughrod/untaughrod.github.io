@@ -73,8 +73,9 @@ function initSmoothScroll() {
 }
 
 /**
- * The scroll-cinema pieces: pinned discipline list, horizontal work rail, and
- * the letter-by-letter section headings.
+ * The scroll-cinema pieces: the discipline list, the letter-by-letter section
+ * headings, and the text marquee. The work strip runs itself — see
+ * components/Carousel.astro.
  */
 function initScrollScenes() {
   if (reduced) return;
@@ -122,40 +123,6 @@ function initScrollScenes() {
     });
   });
 
-  // --- Work rail: scrolls horizontally while the section is pinned ----------
-  const rail = document.querySelector<HTMLElement>('[data-rail]');
-  const railTrack = document.querySelector<HTMLElement>('[data-rail-track]');
-
-  if (rail && railTrack) {
-    // Only pin where there is room; on narrow screens the rail stays a normal
-    // touch-scrolling row.
-    ScrollTrigger.matchMedia({
-      '(min-width: 900px)': () => {
-        const distance = () => railTrack.scrollWidth - window.innerWidth + 120;
-
-        const tween = gsap.to(railTrack, {
-          x: () => -distance(),
-          ease: 'none',
-          scrollTrigger: {
-            trigger: rail,
-            start: 'top top',
-            end: () => `+=${distance()}`,
-            pin: true,
-            scrub: 0.8,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-          },
-        });
-
-        return () => {
-          tween.scrollTrigger?.kill();
-          tween.kill();
-          gsap.set(railTrack, { clearProps: 'x' });
-        };
-      },
-    });
-  }
-
   // --- Marquee: seamless because the track is duplicated in the markup ------
   document.querySelectorAll<HTMLElement>('[data-marquee-track]').forEach((track) => {
     gsap.to(track, {
@@ -172,8 +139,8 @@ function boot() {
   initSmoothScroll();
   initScrollScenes();
 
-  // Late-loading fonts change text metrics, which invalidates every pinned
-  // measurement ScrollTrigger took.
+  // Late-loading fonts change text metrics, which invalidates the positions
+  // ScrollTrigger measured.
   document.fonts?.ready.then(() => ScrollTrigger.refresh());
 }
 

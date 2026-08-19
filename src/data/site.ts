@@ -2,8 +2,8 @@
  * Single source of truth for copy and work entries.
  *
  * Everything a non-developer would want to change lives here rather than in
- * markup. Swap the placeholder work items for real pieces as you migrate them
- * off the Google Sites portfolio.
+ * markup. The work strip is generated from the image folders instead — see
+ * data/work.ts.
  */
 
 export const site = {
@@ -75,63 +75,8 @@ export type WorkItem = {
   discipline: 'illustration' | 'modelling' | 'product';
   year: string;
   summary: string;
-  /** Place files in public/work/ and reference them as /work/filename.jpg */
-  image?: string;
   tags: string[];
 };
-
-/**
- * PLACEHOLDER CONTENT — replace with real pieces and add images to public/work/.
- * Items without an image render a typographic card, so the layout never breaks
- * while you are still migrating assets.
- */
-export const work: WorkItem[] = [
-  {
-    slug: 'retro-handhelds',
-    title: 'Retro Handhelds',
-    discipline: 'modelling',
-    year: '2024',
-    summary:
-      'A study series of handheld consoles rebuilt from photographs — every seam, screw boss and light-piped indicator modelled rather than textured.',
-    tags: ['Blender', 'Hard-surface', 'Product viz'],
-  },
-  {
-    slug: 'world-birds',
-    title: 'World Birds',
-    discipline: 'illustration',
-    year: '2023',
-    summary:
-      'An ongoing ornithological set. Field-guide accuracy in the plumage, deliberately loose in the gesture.',
-    tags: ['Ink', 'Digital', 'Series'],
-  },
-  {
-    slug: 'fountain-pens',
-    title: 'Fountain Pens',
-    discipline: 'illustration',
-    year: '2023',
-    summary:
-      'Cutaway studies of nib and feed assemblies, drawn to explain the mechanism as much as to flatter the object.',
-    tags: ['Technical illustration', 'Ink'],
-  },
-  {
-    slug: 'pokemon-collab',
-    title: 'Pokémon Collaboration',
-    discipline: 'illustration',
-    year: '2022',
-    summary:
-      'Character reinterpretations produced for a collaborative set, working inside an established style guide.',
-    tags: ['Character', 'Collaboration'],
-  },
-  {
-    slug: 'design-system',
-    title: 'Interface System',
-    discipline: 'product',
-    year: '2024',
-    summary:
-      'Token architecture and component specification for a multi-surface product, built to survive handoff to engineers.',
-    tags: ['Design systems', 'Tokens', 'Figma'],
-  },
-];
 
 export const disciplineLabels: Record<WorkItem['discipline'], string> = {
   illustration: 'Illustration',
