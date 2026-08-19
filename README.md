@@ -88,7 +88,7 @@ Measured on the production build:
 | Total site | **2.6 MB**, including 16 pieces of artwork |
 | CSS | **31 KB** |
 | Nav logo | **545 KB** source → **2.8 KB** shipped (WebP) |
-| Artwork | **20 MB** of sources → **1.3 MB** of WebP served |
+| Artwork | **17 MB** of sources → **1.3 MB** of WebP served |
 | three.js | **540 KB**, lazily imported — not in the initial load |
 
 ## Accessibility
