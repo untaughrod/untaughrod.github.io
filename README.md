@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo-readme.png" alt="untaughrod" width="180">
+  <img src="src/assets/logo-badge.png" alt="untaughrod" width="180">
 </p>
 
 <h1 align="center">untaughrod.com</h1>
